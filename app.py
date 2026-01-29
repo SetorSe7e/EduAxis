@@ -224,12 +224,12 @@ def generate_receipt(id):
     pdf.set_font('Arial', '', 8)
     pdf.cell(200, 8, remover_acentos('Documento emitido eletronicamente.'), ln=True, align='C')
 
-    # --- CORREÇÃO AQUI ---
-    # Gera o PDF como string, converte para bytes e coloca no buffer
-    pdf_string = pdf.output(dest='S').encode('latin-1')
-    buffer = io.BytesIO(pdf_string)
+    # --- CORREÇÃO DEFINITIVA ---
+    # O output() já retorna um bytearray (binário), então passamos direto pro buffer
+    pdf_bytes = pdf.output(dest='S')
+    buffer = io.BytesIO(pdf_bytes)
     buffer.seek(0)
-    # ---------------------
+    # --------------------------
 
     return send_file(
         buffer, 
