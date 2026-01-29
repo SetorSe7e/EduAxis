@@ -155,24 +155,36 @@ def pay_fee(id):
 def generate_receipt(id):
     fee = Fee.query.get_or_404(id)
     student = fee.student
-    guardian = student.guardian
     
-    # Cria o objeto PDF
+    # 1. Segurança: Verifica se o aluno e responsável existem
+    guardian_name = "Não informado"
+    if student and student.guardian:
+        guardian_name = student.guardian.name
+
+    # 2. Segurança: Verifica se a data de pagamento existe
+    pay_date_str = "N/D"
+    if fee.payment_date:
+        pay_date_str = fee.payment_date.strftime('%d/%m/%Y')
+
+    # Função auxiliar para remover acentos (com segurança)
+    def remover_acentos(txt):
+        if not txt: return ""
+        try:
+            return unicodedata.normalize('NFKD', txt).encode('ASCII', 'ignore').decode('ASCII')
+        except:
+            return txt
+
     pdf = FPDF()
     pdf.add_page()
     
-    # Configura Fonte (Tente usar Arial, padrão em PDFs simples)
-    # Nota: PDFs simples em Python podem ter limitações com acentos se não usar fontes TrueType
-    # Para este sistema básico, vamos usar o padrão.
-    pdf.set_font('Arial', 'B', 16)
-    
     # Cabeçalho
-    pdf.cell(200, 10, 'Escola Renascher', ln=True, align='C')
-    pdf.set_font('Arial', 'I', 12)
-    pdf.cell(200, 6, 'Comprovante de Pagamento', ln=True, align='C')
-    pdf.ln(10) # Quebra de linha
+    pdf.set_font('Arial', 'B', 16)
+    pdf.cell(200, 10, remover_acentos('Escola Renascher'), ln=True, align='C')
     
-    # Linha divisória
+    pdf.set_font('Arial', 'I', 12)
+    pdf.cell(200, 6, remover_acentos('Comprovante de Pagamento'), ln=True, align='C')
+    pdf.ln(10)
+    
     pdf.set_draw_color(200, 200, 200)
     pdf.line(10, 40, 200, 40)
     pdf.ln(10)
@@ -181,51 +193,52 @@ def generate_receipt(id):
     pdf.set_font('Arial', '', 12)
     pdf.cell(200, 8, f'ID do Pagamento: #{fee.id}', ln=True)
     pdf.cell(200, 8, f'Data de Emissao: {datetime.now().strftime("%d/%m/%Y")}', ln=True)
-    pdf.cell(200, 8, f'Data do Pagamento: {fee.payment_date.strftime("%d/%m/%Y")}', ln=True)
+    pdf.cell(200, 8, f'Data do Pagamento: {pay_date_str}', ln=True)
     pdf.ln(5)
     
     pdf.set_font('Arial', 'B', 12)
-    pdf.cell(40, 8, 'Aluno(a):', ln=False)
+    pdf.cell(40, 8, remover_acentos('Aluno(a):'), ln=False)
     pdf.set_font('Arial', '', 12)
-    pdf.cell(160, 8, student.name, ln=True)
+    pdf.cell(160, 8, remover_acentos(student.name), ln=True)
     
     pdf.set_font('Arial', 'B', 12)
-    pdf.cell(40, 8, 'Responsavel:', ln=False)
+    pdf.cell(40, 8, remover_acentos('Responsavel:'), ln=False)
     pdf.set_font('Arial', '', 12)
-    pdf.cell(160, 8, guardian.name, ln=True)
+    pdf.cell(160, 8, remover_acentos(guardian_name), ln=True)
     
     pdf.ln(10)
     pdf.set_font('Arial', 'B', 12)
-    pdf.cell(40, 8, 'Referencia:', ln=False)
+    pdf.cell(40, 8, remover_acentos('Referencia:'), ln=False)
     pdf.set_font('Arial', '', 12)
-    pdf.cell(160, 8, fee.month, ln=True)
+    pdf.cell(160, 8, remover_acentos(fee.month), ln=True)
     
     pdf.set_font('Arial', 'B', 12)
-    pdf.cell(40, 8, 'Valor Pago:', ln=False)
+    pdf.cell(40, 8, remover_acentos('Valor Pago:'), ln=False)
     pdf.set_font('Arial', '', 12)
     pdf.cell(160, 8, f'R$ {fee.amount:.2f}', ln=True)
     
-    # Rodapé / Assinatura
     pdf.ln(40)
     pdf.line(60, 200, 150, 200)
     pdf.set_font('Arial', 'I', 10)
-    pdf.cell(200, 8, 'Assinatura da Direcao', ln=True, align='C')
+    pdf.cell(200, 8, remover_acentos('Assinatura da Direcao'), ln=True, align='C')
     pdf.set_font('Arial', '', 8)
-    pdf.cell(200, 8, 'Documento emitido eletronicamente.', ln=True, align='C')
+    pdf.cell(200, 8, remover_acentos('Documento emitido eletronicamente.'), ln=True, align='C')
 
-    # Salvar PDF na memoria (RAM) em vez de no disco
-    buffer = io.BytesIO()
-    pdf.output(buffer, 'S')
+    # --- CORREÇÃO AQUI ---
+    # Gera o PDF como string, converte para bytes e coloca no buffer
+    pdf_string = pdf.output(dest='S').encode('latin-1')
+    buffer = io.BytesIO(pdf_string)
     buffer.seek(0)
-    
-    # Retornar o arquivo para o usuario baixar
+    # ---------------------
+
     return send_file(
         buffer, 
         as_attachment=True, 
         download_name=f'recibo_{fee.month}_{student.name}.pdf',
         mimetype='application/pdf'
     )
-    # --- CRUD PROFESSORES ---
+
+# --- CRUD PROFESSORES ---
 
 @app.route('/teachers')
 @login_required
