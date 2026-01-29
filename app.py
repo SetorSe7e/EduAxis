@@ -153,8 +153,15 @@ def pay_fee(id):
 with app.app_context():
     db.create_all()
     # Cria o Admin se não existir
+# ... Dentro do bloco with app.app_context(): ...
+
     if not User.query.filter_by(username='admin').first():
-        admin = User(username='admin', password=generate_password_hash('123'), role='director')
+        # ADICIONE 'method="pbkdf2:sha256"' conforme abaixo para encurtar a senha:
+        admin = User(
+            username='admin', 
+            password=generate_password_hash('123', method='pbkdf2:sha256'), 
+            role='director'
+        )
         db.session.add(admin)
         db.session.commit()
         print("Usuário Admin criado automaticamente: admin / 123")
