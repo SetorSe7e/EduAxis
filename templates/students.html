@@ -2,7 +2,7 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1>Gerenciar Alunos</h1>
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddStudent">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalStudent" onclick="limparFormulario()">
         <i class="fas fa-plus"></i> Novo Aluno
     </button>
 </div>
@@ -26,6 +26,12 @@
                 <td>{{ s.guardian.name }}</td>
                 <td>{{ s.birth_date.strftime('%d/%m/%Y') }}</td>
                 <td>
+                    <!-- Botão Editar -->
+                    <button class="btn btn-sm btn-warning" onclick="editarAluno('{{ s.id }}', '{{ s.name }}', '{{ s.class_name }}', '{{ s.birth_date.strftime("%Y-%m-%d") }}')">
+                        <i class="fas fa-edit"></i> Editar
+                    </button>
+                    
+                    <!-- Botão Excluir -->
                     <a href="{{ url_for('delete_student', id=s.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza?')">
                         <i class="fas fa-trash"></i>
                     </a>
@@ -37,38 +43,64 @@
 </div>
 
 <!-- Modal -->
-<div class="modal fade" id="modalAddStudent" tabindex="-1">
+<div class="modal fade" id="modalStudent" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Cadastrar Aluno</h5>
+                <h5 class="modal-title" id="modalTitle">Cadastrar Aluno</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="{{ url_for('add_student') }}" method="POST">
+            <form id="formStudent" action="{{ url_for('add_student') }}" method="POST">
+                <input type="hidden" id="studentId" name="id">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label>Nome Completo</label>
-                        <input type="text" name="name" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label>Nome do Responsável</label>
-                        <input type="text" name="guardian_name" class="form-control" required>
+                        <input type="text" id="studentName" name="name" class="form-control" required>
                     </div>
                     <div class="mb-3">
                         <label>Turma</label>
-                        <input type="text" name="class_name" class="form-control" required>
+                        <input type="text" id="studentClass" name="class_name" class="form-control" required>
                     </div>
                     <div class="mb-3">
                         <label>Data Nascimento</label>
-                        <input type="date" name="birth" class="form-control" required>
+                        <input type="date" id="studentBirth" name="birth" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Nome do Responsável (Para vínculo)</label>
+                        <input type="text" id="studentGuardian" name="guardian_name" class="form-control" required>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Salvar</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<script>
+function limparFormulario() {
+    document.getElementById('formStudent').action = "{{ url_for('add_student') }}";
+    document.getElementById('modalTitle').innerText = "Cadastrar Aluno";
+    document.getElementById('studentId').value = "";
+    document.getElementById('studentName').value = "";
+    document.getElementById('studentClass').value = "";
+    document.getElementById('studentBirth').value = "";
+    document.getElementById('studentGuardian').value = "";
+}
+
+function editarAluno(id, name, class_name, birth) {
+    document.getElementById('formStudent').action = "{{ url_for('edit_student') }}";
+    document.getElementById('modalTitle').innerText = "Editar Aluno";
+    document.getElementById('studentId').value = id;
+    document.getElementById('studentName').value = name;
+    document.getElementById('studentClass').value = class_name;
+    document.getElementById('studentBirth').value = birth;
+    
+    // Mantemos o responsável no edit para não complicar, mas ele permanece oculto ou inalterado
+    
+    var myModal = new bootstrap.Modal(document.getElementById('modalStudent'));
+    myModal.show();
+}
+</script>
 {% endblock %}

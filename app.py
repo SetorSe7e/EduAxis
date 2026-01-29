@@ -94,6 +94,22 @@ def add_student():
     class_name = request.form.get('class_name')
     guardian_name = request.form.get('guardian_name')
     
+@app.route('/students/edit', methods=['POST'])
+@login_required
+def edit_student():
+    student_id = request.form.get('id')
+    student = Student.query.get_or_404(student_id)
+    
+    student.name = request.form.get('name')
+    student.birth_date = datetime.strptime(request.form.get('birth'), '%Y-%m-%d')
+    student.class_name = request.form.get('class_name')
+    
+    # Nota: Se quiser trocar o responsável no futuro, precisaria adicionar a lógica aqui também
+    
+    db.session.commit()
+    flash('Dados do aluno atualizados!')
+    return redirect(url_for('students'))
+    
     # Lógica para buscar ou criar responsável
     guardian = Guardian.query.filter_by(name=guardian_name).first()
     if not guardian:
