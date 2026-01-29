@@ -3,6 +3,9 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import os
+from flask import send_file
+import io
+from fpdf import FPDF
 
 # Importa as classes de banco de dados do arquivo models.py
 from models import db, User, Student, Guardian, Fee
@@ -145,6 +148,83 @@ def pay_fee(id):
     db.session.commit()
     flash('Pagamento registrado com sucesso!')
     return redirect(url_for('finance'))
+    # ... código anterior (pay_fee) ...
+
+@app.route('/finance/receipt/<int:id>')
+@login_required
+def generate_receipt(id):
+    fee = Fee.query.get_or_404(id)
+    student = fee.student
+    guardian = student.guardian
+    
+    # Cria o objeto PDF
+    pdf = FPDF()
+    pdf.add_page()
+    
+    # Configura Fonte (Tente usar Arial, padrão em PDFs simples)
+    # Nota: PDFs simples em Python podem ter limitações com acentos se não usar fontes TrueType
+    # Para este sistema básico, vamos usar o padrão.
+    pdf.set_font('Arial', 'B', 16)
+    
+    # Cabeçalho
+    pdf.cell(200, 10, 'Escola Renascher', ln=True, align='C')
+    pdf.set_font('Arial', 'I', 12)
+    pdf.cell(200, 6, 'Comprovante de Pagamento', ln=True, align='C')
+    pdf.ln(10) # Quebra de linha
+    
+    # Linha divisória
+    pdf.set_draw_color(200, 200, 200)
+    pdf.line(10, 40, 200, 40)
+    pdf.ln(10)
+    
+    # Dados do Recibo
+    pdf.set_font('Arial', '', 12)
+    pdf.cell(200, 8, f'ID do Pagamento: #{fee.id}', ln=True)
+    pdf.cell(200, 8, f'Data de Emissao: {datetime.now().strftime("%d/%m/%Y")}', ln=True)
+    pdf.cell(200, 8, f'Data do Pagamento: {fee.payment_date.strftime("%d/%m/%Y")}', ln=True)
+    pdf.ln(5)
+    
+    pdf.set_font('Arial', 'B', 12)
+    pdf.cell(40, 8, 'Aluno(a):', ln=False)
+    pdf.set_font('Arial', '', 12)
+    pdf.cell(160, 8, student.name, ln=True)
+    
+    pdf.set_font('Arial', 'B', 12)
+    pdf.cell(40, 8, 'Responsavel:', ln=False)
+    pdf.set_font('Arial', '', 12)
+    pdf.cell(160, 8, guardian.name, ln=True)
+    
+    pdf.ln(10)
+    pdf.set_font('Arial', 'B', 12)
+    pdf.cell(40, 8, 'Referencia:', ln=False)
+    pdf.set_font('Arial', '', 12)
+    pdf.cell(160, 8, fee.month, ln=True)
+    
+    pdf.set_font('Arial', 'B', 12)
+    pdf.cell(40, 8, 'Valor Pago:', ln=False)
+    pdf.set_font('Arial', '', 12)
+    pdf.cell(160, 8, f'R$ {fee.amount:.2f}', ln=True)
+    
+    # Rodapé / Assinatura
+    pdf.ln(40)
+    pdf.line(60, 200, 150, 200)
+    pdf.set_font('Arial', 'I', 10)
+    pdf.cell(200, 8, 'Assinatura da Direcao', ln=True, align='C')
+    pdf.set_font('Arial', '', 8)
+    pdf.cell(200, 8, 'Documento emitido eletronicamente.', ln=True, align='C')
+
+    # Salvar PDF na memoria (RAM) em vez de no disco
+    buffer = io.BytesIO()
+    pdf.output(buffer, 'S')
+    buffer.seek(0)
+    
+    # Retornar o arquivo para o usuario baixar
+    return send_file(
+        buffer, 
+        as_attachment=True, 
+        download_name=f'recibo_{fee.month}_{student.name}.pdf',
+        mimetype='application/pdf'
+    )
 
 # --- INICIALIZAÇÃO DO BANCO DE DADOS ---
 # Este bloco garante que as tabelas sejam criadas assim que o app rodar
