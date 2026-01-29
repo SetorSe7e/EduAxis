@@ -4,4 +4,4 @@ Flask-Login
 werkzeug
 gunicorn
 psycopg2-binary
-fpdf
+fpdf2
