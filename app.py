@@ -4,14 +4,18 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import os
 
+# Importa as classes de banco de dados do arquivo models.py
 from models import db, User, Student, Guardian, Fee
 
 app = Flask(__name__)
-# Configuração de Segurança e Banco de Dados
-app.config['SECRET_KEY'] = 'sua_chave_secreta_super_segura_aqui'
 
-# Conexão com banco (Funciona local com SQLite e no Render com Postgres)
+# --- CONFIGURAÇÕES ---
+# Chave secreta (Importante para Sessões)
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'chave-secreta-dev-local')
+
+# Conexão com Banco de Dados (SQLite local ou PostgreSQL no Render)
 db_url = os.environ.get('DATABASE_URL', 'sqlite:///escola.db')
+# Correção necessária para o Render/Heroku reconhecer o link do Postgres
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 
@@ -27,7 +31,7 @@ login_manager.login_view = 'index'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# --- ROTAS PÚBLICAS ---
+# --- ROTAS ---
 
 @app.route('/')
 def index():
@@ -55,8 +59,6 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
-# --- DASHBOARD ---
-
 @app.route('/dashboard')
 @login_required
 def dashboard():
@@ -74,8 +76,6 @@ def dashboard():
                            pending=pending_fees,
                            receita=receita,
                            pendente_val=pendente)
-
-# --- ALUNOS ---
 
 @app.route('/students')
 @login_required
@@ -114,13 +114,13 @@ def delete_student(id):
     flash('Aluno removido.')
     return redirect(url_for('students'))
 
-# --- FINANCEIRO ---
-
 @app.route('/finance')
 @login_required
 def finance():
     fees = Fee.query.order_by(Fee.due_date.desc()).all()
-    return render_template('finance.html', fees=fees)
+    # CORREÇÃO IMPORTANTE: Passar a lista 'students' para o template finance.html
+    students = Student.query.all() 
+    return render_template('finance.html', fees=fees, students=students)
 
 @app.route('/finance/add', methods=['POST'])
 @login_required
@@ -146,15 +146,20 @@ def pay_fee(id):
     flash('Pagamento registrado com sucesso!')
     return redirect(url_for('finance'))
 
-# --- INICIALIZAÇÃO ---
+# --- INICIALIZAÇÃO DO BANCO DE DADOS ---
+# Este bloco garante que as tabelas sejam criadas assim que o app rodar
+# Tanto no seu PC quanto no Render.
+
+with app.app_context():
+    db.create_all()
+    # Cria o Admin se não existir
+    if not User.query.filter_by(username='admin').first():
+        admin = User(username='admin', password=generate_password_hash('123'), role='director')
+        db.session.add(admin)
+        db.session.commit()
+        print("Usuário Admin criado automaticamente: admin / 123")
+
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-        # Criar usuário admin se não existir
-        if not User.query.filter_by(username='admin').first():
-            admin = User(username='admin', password=generate_password_hash('123'), role='director')
-            db.session.add(admin)
-            db.session.commit()
-            print("Usuário Admin criado: admin / 123")
-            
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Lê a porta definida pelo Render, se não houver usa 5000
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=True, host='0.0.0.0', port=port)
