@@ -13,11 +13,15 @@
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('dashboard') }}">Escola Renascher</a>
             <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="{{ url_for('dashboard') }}"><i class="fas fa-chart-pie"></i> Dashboard</a>
-                <a class="nav-link" href="{{ url_for('students') }}"><i class="fas fa-user-graduate"></i> Alunos</a>
-                <a class="nav-link" href="{{ url_for('finance') }}"><i class="fas fa-dollar-sign"></i> Financeiro</a>
-                <a class="nav-link text-light" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Sair</a>
-            </div>
+    <a class="nav-link" href="{{ url_for('dashboard') }}"><i class="fas fa-chart-pie"></i> Dashboard</a>
+    <a class="nav-link" href="{{ url_for('students') }}"><i class="fas fa-user-graduate"></i> Alunos</a>
+    <!-- NOVOS LINKS AQUI -->
+    <a class="nav-link" href="{{ url_for('teachers') }}"><i class="fas fa-chalkboard-teacher"></i> Professores</a>
+    <a class="nav-link" href="{{ url_for('classes_list') }}"><i class="fas fa-school"></i> Turmas</a>
+    <!-- FIM NOVOS LINKS -->
+    <a class="nav-link" href="{{ url_for('finance') }}"><i class="fas fa-dollar-sign"></i> Financeiro</a>
+    <a class="nav-link text-light" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Sair</a>
+</div>
         </div>
     </nav>
     {% endif %}

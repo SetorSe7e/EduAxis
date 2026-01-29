@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Professores</h1>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTeacher" onclick="limparFormulario()">
+        <i class="fas fa-plus"></i> Novo Professor
+    </button>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Nome</th>
+                <th>Disciplina</th>
+                <th>Telefone</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in teachers %}
+            <tr>
+                <td>{{ t.name }}</td>
+                <td>{{ t.subject }}</td>
+                <td>{{ t.phone }}</td>
+                <td>
+                    <!-- Botão Editar abre o modal com dados -->
+                    <button class="btn btn-sm btn-warning" onclick="editarProfessor('{{ t.id }}', '{{ t.name }}', '{{ t.subject }}', '{{ t.phone }}')">
+                        <i class="fas fa-edit"></i> Editar
+                    </button>
+                    <a href="{{ url_for('delete_teacher', id=t.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza?')">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal de Cadastro/Edição -->
+<div class="modal fade" id="modalTeacher" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Cadastrar Professor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <!-- A ação muda dinamicamente via JS -->
+            <form id="formTeacher" action="{{ url_for('add_teacher') }}" method="POST">
+                <input type="hidden" id="teacherId" name="id">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label>Nome</label>
+                        <input type="text" id="teacherName" name="name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Disciplina</label>
+                        <input type="text" id="teacherSubject" name="subject" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Telefone</label>
+                        <input type="text" id="teacherPhone" name="phone" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function limparFormulario() {
+    document.getElementById('formTeacher').action = "{{ url_for('add_teacher') }}";
+    document.getElementById('modalTitle').innerText = "Cadastrar Professor";
+    document.getElementById('teacherId').value = "";
+    document.getElementById('teacherName').value = "";
+    document.getElementById('teacherSubject').value = "";
+    document.getElementById('teacherPhone').value = "";
+}
+
+function editarProfessor(id, name, subject, phone) {
+    document.getElementById('formTeacher').action = "{{ url_for('edit_teacher') }}";
+    document.getElementById('modalTitle').innerText = "Editar Professor";
+    document.getElementById('teacherId').value = id;
+    document.getElementById('teacherName').value = name;
+    document.getElementById('teacherSubject').value = subject;
+    document.getElementById('teacherPhone').value = phone;
+    
+    var myModal = new bootstrap.Modal(document.getElementById('modalTeacher'));
+    myModal.show();
+}
+</script>
+{% endblock %}

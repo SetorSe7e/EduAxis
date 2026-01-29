@@ -35,3 +35,18 @@ class Fee(db.Model):
     status = db.Column(db.String(20), default='pendente')
     due_date = db.Column(db.Date)
     payment_date = db.Column(db.Date)
+
+    # ... classes anteriores (User, Guardian, Student, Fee) ...
+
+class Teacher(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(150), nullable=False)
+    subject = db.Column(db.String(100), nullable=False)
+    phone = db.Column(db.String(20))
+    classes = db.relationship('Class', backref='teacher', lazy=True)
+
+class Class(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False) # Ex: Maternal II
+    year = db.Column(db.Integer, nullable=False)      # Ex: 2024
+    teacher_id = db.Column(db.Integer, db.ForeignKey('teacher.id'), nullable=True)

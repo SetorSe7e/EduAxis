@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Turmas</h1>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalClass" onclick="limparFormulario()">
+        <i class="fas fa-plus"></i> Nova Turma
+    </button>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Nome da Turma</th>
+                <th>Ano Letivo</th>
+                <th>Professor Responsável</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in classes %}
+            <tr>
+                <td>{{ c.name }}</td>
+                <td>{{ c.year }}</td>
+                <td>{{ c.teacher.name if c.teacher else '-' }}</td>
+                <td>
+                    <button class="btn btn-sm btn-warning" onclick="editarTurma('{{ c.id }}', '{{ c.name }}', '{{ c.year }}', '{{ c.teacher_id or "" }}')">
+                        <i class="fas fa-edit"></i> Editar
+                    </button>
+                    <a href="{{ url_for('delete_class', id=c.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza?')">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="modalClass" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Nova Turma</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formClass" action="{{ url_for('add_class') }}" method="POST">
+                <input type="hidden" id="classId" name="id">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label>Nome (ex: Maternal II)</label>
+                        <input type="text" id="className" name="name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Ano Letivo</label>
+                        <input type="number" id="classYear" name="year" class="form-control" value="2024" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Professor</label>
+                        <select id="classTeacher" name="teacher_id" class="form-control">
+                            <option value="">Selecione...</option>
+                            {% for t in teachers %}
+                            <option value="{{ t.id }}">{{ t.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function limparFormulario() {
+    document.getElementById('formClass').action = "{{ url_for('add_class') }}";
+    document.getElementById('modalTitle').innerText = "Nova Turma";
+    document.getElementById('classId').value = "";
+    document.getElementById('className').value = "";
+    document.getElementById('classYear').value = "2024";
+    document.getElementById('classTeacher').value = "";
+}
+
+function editarTurma(id, name, year, teacherId) {
+    document.getElementById('formClass').action = "{{ url_for('edit_class') }}";
+    document.getElementById('modalTitle').innerText = "Editar Turma";
+    document.getElementById('classId').value = id;
+    document.getElementById('className').value = name;
+    document.getElementById('classYear').value = year;
+    document.getElementById('classTeacher').value = teacherId;
+
+    var myModal = new bootstrap.Modal(document.getElementById('modalClass'));
+    myModal.show();
+}
+</script>
+{% endblock %}

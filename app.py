@@ -8,7 +8,7 @@ import io
 from fpdf import FPDF
 
 # Importa as classes de banco de dados do arquivo models.py
-from models import db, User, Student, Guardian, Fee
+from models import db, User, Student, Guardian, Fee, Teacher, Class
 
 app = Flask(__name__)
 
@@ -225,6 +225,103 @@ def generate_receipt(id):
         download_name=f'recibo_{fee.month}_{student.name}.pdf',
         mimetype='application/pdf'
     )
+    # --- CRUD PROFESSORES ---
+
+@app.route('/teachers')
+@login_required
+def teachers():
+    teachers = Teacher.query.all()
+    return render_template('teachers.html', teachers=teachers)
+
+@app.route('/teachers/add', methods=['POST'])
+@login_required
+def add_teacher():
+    name = request.form.get('name')
+    subject = request.form.get('subject')
+    phone = request.form.get('phone')
+    
+    new_teacher = Teacher(name=name, subject=subject, phone=phone)
+    db.session.add(new_teacher)
+    db.session.commit()
+    flash('Professor cadastrado com sucesso!')
+    return redirect(url_for('teachers'))
+
+@app.route('/teachers/edit', methods=['POST'])
+@login_required
+def edit_teacher():
+    teacher_id = request.form.get('id') # Recebe ID oculto do formulário
+    teacher = Teacher.query.get_or_404(teacher_id)
+    
+    teacher.name = request.form.get('name')
+    teacher.subject = request.form.get('subject')
+    teacher.phone = request.form.get('phone')
+    
+    db.session.commit()
+    flash('Dados do professor atualizados!')
+    return redirect(url_for('teachers'))
+
+@app.route('/teachers/delete/<int:id>')
+@login_required
+def delete_teacher(id):
+    if current_user.role != 'director':
+        flash('Apenas diretores podem excluir.', 'error')
+        return redirect(url_for('teachers'))
+        
+    teacher = Teacher.query.get_or_404(id)
+    db.session.delete(teacher)
+    db.session.commit()
+    flash('Professor removido.')
+    return redirect(url_for('teachers'))
+
+
+# --- CRUD TURMAS ---
+
+@app.route('/classes')
+@login_required
+def classes_list():
+    classes = Class.query.order_by(Class.year.desc(), Class.name).all()
+    teachers = Teacher.query.all() # Para o select box
+    return render_template('classes.html', classes=classes, teachers=teachers)
+
+@app.route('/classes/add', methods=['POST'])
+@login_required
+def add_class():
+    name = request.form.get('name')
+    year = int(request.form.get('year'))
+    teacher_id = request.form.get('teacher_id') if request.form.get('teacher_id') else None
+    
+    new_class = Class(name=name, year=year, teacher_id=teacher_id)
+    db.session.add(new_class)
+    db.session.commit()
+    flash('Turma criada com sucesso!')
+    return redirect(url_for('classes_list'))
+
+@app.route('/classes/edit', methods=['POST'])
+@login_required
+def edit_class():
+    class_id = request.form.get('id')
+    turma = Class.query.get_or_404(class_id)
+    
+    turma.name = request.form.get('name')
+    turma.year = int(request.form.get('year'))
+    turma.teacher_id = request.form.get('teacher_id') if request.form.get('teacher_id') else None
+    
+    db.session.commit()
+    flash('Turma atualizada!')
+    return redirect(url_for('classes_list'))
+
+@app.route('/classes/delete/<int:id>')
+@login_required
+def delete_class(id):
+    if current_user.role != 'director':
+        flash('Apenas diretores podem excluir.', 'error')
+        return redirect(url_for('classes_list'))
+        
+    turma = Class.query.get_or_404(id)
+    db.session.delete(turma)
+    db.session.commit()
+    flash('Turma removida.')
+    return redirect(url_for('classes_list'))
 
 # --- INICIALIZAÇÃO DO BANCO DE DADOS ---
 # Este bloco garante que as tabelas sejam criadas assim que o app rodar
