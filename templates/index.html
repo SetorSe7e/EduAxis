@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="height: 80vh;">
+    <div class="card shadow p-4" style="width: 100%; max-width: 400px;">
+        <h3 class="text-center mb-4 text-primary">Escola Renascher</h3>
+        <form method="POST" action="{{ url_for('login') }}">
+            <div class="mb-3">
+                <label>Usuário</label>
+                <input type="text" name="username" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label>Senha</label>
+                <input type="password" name="password" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Entrar</button>
+        </form>
+        <p class="mt-3 text-center text-muted small">Admin: admin / 123</p>
+    </div>
+</div>
+{% endblock %}
