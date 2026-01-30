@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
+from sqlalchemy import extract
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
@@ -238,7 +239,7 @@ def bulk_fees():
     
     for s in students:
         # Verifica se não existe mensalidade para este aluno neste mês
-        existing = Fee.query.filter_by(student_id=s.id, month=month).first()
+        existing = Fee.query.filter_by(student_id=student.id, month=mes).filter(extract('year', Fee.due_date) == current_year).first()
         if not existing:
             new_fee = Fee(
                 student_id=s.id, 
