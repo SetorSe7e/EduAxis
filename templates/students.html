@@ -42,7 +42,7 @@
     </table>
 </div>
 
-<!-- Modal -->
+<!-- Modal de Cadastro/Edição -->
 <div class="modal fade" id="modalStudent" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -57,17 +57,38 @@
                         <label>Nome Completo</label>
                         <input type="text" id="studentName" name="name" class="form-control" required>
                     </div>
+                    
+                    <!-- Dropdown de Turma -->
                     <div class="mb-3">
                         <label>Turma</label>
-                        <input type="text" id="studentClass" name="class_name" class="form-control" required>
+                        <select id="studentClass" name="class_name" class="form-select" required>
+                            <option value="">Selecione...</option>
+                            {% for c in classes %}
+                            <option value="{{ c.name }}">{{ c.name }} ({{ c.year }})</option>
+                            {% endfor %}
+                        </select>
                     </div>
+
                     <div class="mb-3">
                         <label>Data Nascimento</label>
                         <input type="date" id="studentBirth" name="birth" class="form-control" required>
                     </div>
+
+                    <!-- Dropdown de Responsável -->
                     <div class="mb-3">
-                        <label>Nome do Responsável (Para vínculo)</label>
-                        <input type="text" id="studentGuardian" name="guardian_name" class="form-control" required>
+                        <label>Responsável (Cadastrado)</label>
+                        <select id="studentGuardian" name="guardian_id" class="form-select">
+                            <option value="">Selecione...</option>
+                            {% for g in guardians %}
+                            <option value="{{ g.id }}">{{ g.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Campo para criar novo responsável rapidamente -->
+                    <div class="mb-3">
+                        <label class="text-muted small">ou Cadastrar Novo Responsável</label>
+                        <input type="text" id="newGuardianName" name="new_guardian_name" class="form-control" placeholder="Digite o nome aqui...">
                     </div>
                 </div>
                 <div class="modal-footer">

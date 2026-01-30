@@ -114,15 +114,40 @@ def dashboard():
 @login_required
 def students():
     students = Student.query.all()
-    return render_template('students.html', students=students)
+    # Busca responsáveis e turmas para os Dropdowns
+    guardians = Guardian.query.all()
+    classes = Class.query.all()
+    return render_template('students.html', students=students, guardians=guardians, classes=classes)
 
 @app.route('/students/add', methods=['POST'])
 @login_required
 def add_student():
     name = request.form.get('name')
     birth = request.form.get('birth')
+    
+    # Recebe o ID do responsável (selecionado no dropdown) ou cria novo se for "novo"
+    guardian_id = request.form.get('guardian_id')
+    new_guardian_name = request.form.get('new_guardian_name')
+
+    if new_guardian_name:
+        # Se digitou um nome novo, cria o responsável
+        guardian = Guardian(name=new_guardian_name, phone='', relation='', cpf='')
+        db.session.add(guardian)
+        db.session.commit()
+        student_guardian_id = guardian.id
+    else:
+        # Se selecionou no dropdown, usa o ID
+        student_guardian_id = guardian_id if guardian_id else None
+
+    # Recebe o nome da turma (dropdown ou texto)
     class_name = request.form.get('class_name')
-    guardian_name = request.form.get('guardian_name')
+    
+    new_student = Student(name=name, birth_date=datetime.strptime(birth, '%Y-%m-%d'), class_name=class_name, guardian_id=student_guardian_id)
+    db.session.add(new_student)
+    db.session.commit()
+    
+    flash(f'Aluno {name} cadastrado com sucesso!')
+    return redirect(url_for('students'))
     
 @app.route('/students/edit', methods=['POST'])
 @login_required
@@ -195,6 +220,59 @@ def pay_fee(id):
     flash('Pagamento registrado com sucesso!')
     return redirect(url_for('finance'))
     # ... código anterior (pay_fee) ...
+
+@app.route('/finance/bulk', methods=['POST'])
+@login_required
+def bulk_fees():
+    month = request.form.get('month')
+    year = request.form.get('year')
+    base_value = float(request.form.get('amount'))
+    discount = float(request.form.get('discount', 0))
+    
+    final_amount = base_value - discount
+    
+    due_date_str = request.form.get('due_date')
+    due_date = datetime.strptime(due_date_str, '%Y-%m-%d') if due_date_str else None
+    
+    students = Student.query.all()
+    created_count = 0
+    
+    for s in students:
+        # Verifica se não existe mensalidade para este aluno neste mês
+        existing = Fee.query.filter_by(student_id=s.id, month=month).first()
+        if not existing:
+            new_fee = Fee(
+                student_id=s.id, 
+                month=month, 
+                amount=final_amount, 
+                due_date=due_date, 
+                status='pendente'
+            )
+            db.session.add(new_fee)
+            created_count += 1
+            
+    db.session.commit()
+    flash(f'{created_count} mensalidades geradas para {month}!')
+    return redirect(url_for('finance'))
+
+@app.route('/finance/edit', methods=['POST'])
+@login_required
+def edit_fee():
+    fee_id = request.form.get('id')
+    fee = Fee.query.get_or_404(fee_id)
+    
+    fee.amount = float(request.form.get('amount'))
+    fee.due_date = datetime.strptime(request.form.get('due_date'), '%Y-%m-%d')
+    fee.status = request.form.get('status')
+    
+    if fee.status == 'pago':
+        fee.payment_date = datetime.now()
+    else:
+        fee.payment_date = None # Se voltar para pendente, apaga data pagamento
+        
+    db.session.commit()
+    flash('Mensalidade atualizada!')
+    return redirect(url_for('finance'))    
 
 @app.route('/finance/receipt/<int:id>')
 @login_required
