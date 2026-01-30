@@ -61,3 +61,66 @@ body {
 #login-screen { /* Lembre-se de colocar um ID no body do login se quiser específico */
     background: #2c3e50;
 }
+
+/* --- BARRA DE NAVEGAÇÃO MODERNA --- */
+.navbar {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08); /* Sombra suave elevada */
+    backdrop-filter: blur(10px); /* Efeito vidro fosco */
+    background-color: var(--bs-primary) !important; /* Garante a cor da marca */
+    padding: 15px 0; /* Mais altura vertical */
+}
+
+.navbar-brand {
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    font-size: 1.5rem;
+}
+
+/* Estilização dos Links do Menu */
+.navbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.85) !important; /* Texto quase branco */
+    font-weight: 500;
+    margin: 0 5px;
+    border-radius: 8px; /* Bordas arredondadas */
+    transition: all 0.3s ease;
+    padding: 10px 15px !important; /* Mais "botão", menos texto */
+}
+
+/* Ícones */
+.navbar-nav .nav-link i {
+    margin-right: 8px;
+    width: 20px;
+    text-align: center;
+}
+
+/* Efeito ao passar o mouse */
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.2); /* Branco transparente */
+    color: #ffffff !important;
+    transform: translateY(-2px); /* Leve sobe */
+}
+
+/* Dropdowns (Menu Acadêmico) */
+.dropdown-menu {
+    border: none;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    border-radius: 10px;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+.dropdown-item {
+    border-radius: 6px;
+    padding: 8px 15px;
+    color: #333;
+}
+
+.dropdown-item:active {
+    background-color: var(--bs-primary);
+}
+
+/* Ajuste para que o topo da página não fique escondido */
+body {
+    padding-top: 100px; /* Compensa a altura da navbar */
+}

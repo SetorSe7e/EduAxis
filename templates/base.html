@@ -9,23 +9,68 @@
 </head>
 <body>
     {% if current_user.is_authenticated %}
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url_for('dashboard') }}">
-                <img src="{{ url_for('static', filename='logo.png') }}" alt="EduAxis Logo" height="30">
-            </a>
-            <div class="navbar-nav ms-auto">
-    <a class="nav-link" href="{{ url_for('dashboard') }}"><i class="fas fa-chart-pie"></i> Dashboard</a>
-    <a class="nav-link" href="{{ url_for('students') }}"><i class="fas fa-user-graduate"></i> Alunos</a>
-    <!-- NOVOS LINKS AQUI -->
-    <a class="nav-link" href="{{ url_for('teachers') }}"><i class="fas fa-chalkboard-teacher"></i> Professores</a>
-    <a class="nav-link" href="{{ url_for('classes_list') }}"><i class="fas fa-school"></i> Turmas</a>
-    <!-- FIM NOVOS LINKS -->
-    <a class="nav-link" href="{{ url_for('finance') }}"><i class="fas fa-dollar-sign"></i> Financeiro</a>
-    <a class="nav-link text-light" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Sair</a>
-</div>
+    <!-- NOVO HEADER MODERNO -->
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+    <div class="container">
+        <!-- Logo -->
+        <a class="navbar-brand text-white" href="{{ url_for('dashboard') }}">
+            <i class="fas fa-graduation-cap me-2"></i>EduAxis
+        </a>
+        
+        <!-- Botão Mobile -->
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Links do Menu -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto text-center">
+                
+                <!-- Dashboard -->
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">
+                        <i class="fas fa-chart-pie"></i> Dashboard
+                    </a>
+                </li>
+
+                <!-- Acadêmico (Dropdown Agrupado) -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-university"></i> Acadêmico
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('students') }}"><i class="fas fa-user-graduate me-2"></i> Alunos</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('teachers') }}"><i class="fas fa-chalkboard-teacher me-2"></i> Professores</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('classes_list') }}"><i class="fas fa-school me-2"></i> Turmas</a></li>
+                    </ul>
+                </li>
+
+                <!-- Chamada (Individual) -->
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'attendance' %}active{% endif %}" href="{{ url_for('attendance') }}">
+                        <i class="fas fa-calendar-check"></i> Chamada
+                    </a>
+                </li>
+
+                <!-- Financeiro -->
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'finance' %}active{% endif %}" href="{{ url_for('finance') }}">
+                        <i class="fas fa-wallet"></i> Financeiro
+                    </a>
+                </li>
+
+                <!-- Sair (Separado) -->
+                <li class="nav-item ms-lg-3">
+                    <a class="nav-link btn-danger text-white py-2 px-3 shadow-sm" href="{{ url_for('logout') }}" style="background-color: #e74c3c !important;">
+                        <i class="fas fa-power-off"></i> Sair
+                    </a>
+                </li>
+
+            </ul>
         </div>
-    </nav>
+    </div>
+</nav>
+<!-- FIM HEADER -->
     {% endif %}
 
     <div class="container mt-4 mb-5">
