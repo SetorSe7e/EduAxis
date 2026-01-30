@@ -7,6 +7,7 @@ import os
 from flask import send_file
 import io
 from fpdf import FPDF
+from sqlalchemy.exc import IntegrityError
 
 # Importa as classes de banco de dados do arquivo models.py
 from models import db, User, Student, Guardian, Fee, Teacher, Class
@@ -286,7 +287,7 @@ def generate_yearly_fees():
     student_id = request.form.get('student_id')
     base_value = float(request.form.get('amount'))
     discount = float(request.form.get('discount', 0))
-    due_day = int(request.form.get('due_day')) # Dia do mês (ex: dia 10)
+    due_day = int(request.form.get('due_day'))
     
     student = Student.query.get_or_404(student_id)
     current_year = datetime.now().year
@@ -295,16 +296,16 @@ def generate_yearly_fees():
     created_count = 0
 
     for mes, num_mes in MONTHS_MAP.items():
-        # Tenta criar a data. Se o dia for 30/31 e o mês for Fevereiro, ajusta para o dia 28
+        # Tenta criar a data corretamente
         try:
             due_date = datetime(current_year, num_mes, due_day).date()
         except ValueError:
             due_date = datetime(current_year, num_mes, 28).date()
 
-        # Verifica se já existe mensalidade para este aluno neste mês
-        existing = Fee.query.filter_by(student_id=student.id, month=mes).filter(Fee.due_date.like(f'%{current_year}%')).first()
-        
-        if not existing:
+        # --- NOVA LÓGICA BLINDADA ---
+        # Tenta criar a mensalidade direto. Se já existe, o banco vai reclamar (IntegrityError)
+        # e nós capturamos o erro e ignoramos. Assim evitamos o comando LIKE.
+        try:
             new_fee = Fee(
                 student_id=student.id, 
                 month=mes, 
@@ -313,9 +314,14 @@ def generate_yearly_fees():
                 status='pendente'
             )
             db.session.add(new_fee)
+            db.session.commit()
             created_count += 1
-            
-    db.session.commit()
+        except IntegrityError:
+            # Se der erro de integridade (chave duplicada), significa que já existe.
+            # Fazemos um rollback para limpar o erro e continuamos o loop.
+            db.session.rollback()
+        # -----------------------------
+
     flash(f'{created_count} mensalidades geradas para {student.name}!')
     return redirect(url_for('finance'))    
 
