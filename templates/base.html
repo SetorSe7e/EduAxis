@@ -9,7 +9,7 @@
 </head>
 <body>
     {% if current_user.is_authenticated %}
-    <!-- NOVO HEADER MODERNO -->
+    <!-- HEADER MODERNO (SEM CHAMADA) -->
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
     <div class="container">
         <!-- Logo -->
@@ -45,12 +45,7 @@
                     </ul>
                 </li>
 
-                <!-- Chamada (Individual) -->
-                <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint == 'attendance' %}active{% endif %}" href="{{ url_for('attendance') }}">
-                        <i class="fas fa-calendar-check"></i> Chamada
-                    </a>
-                </li>
+                <!-- REMOVIDO: Botão Chamada (porque não existe a rota) -->
 
                 <!-- Financeiro -->
                 <li class="nav-item">
