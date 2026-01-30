@@ -192,8 +192,7 @@ def delete_student(id):
 @login_required
 def finance():
     fees = Fee.query.order_by(Fee.due_date.desc()).all()
-    # CORREÇÃO IMPORTANTE: Passar a lista 'students' para o template finance.html
-    students = Student.query.all() 
+    students = Student.query.all() # Necessário para o modal de geração
     return render_template('finance.html', fees=fees, students=students)
 
 @app.route('/finance/add', methods=['POST'])
@@ -272,6 +271,51 @@ def edit_fee():
         
     db.session.commit()
     flash('Mensalidade atualizada!')
+    return redirect(url_for('finance'))
+
+# Mapeamento de meses para números (para criar a data correta)
+MONTHS_MAP = {
+    'Janeiro': 1, 'Fevereiro': 2, 'Março': 3, 'Abril': 4, 'Maio': 5, 'Junho': 6,
+    'Julho': 7, 'Agosto': 8, 'Setembro': 9, 'Outubro': 10, 'Novembro': 11, 'Dezembro': 12
+}
+
+@app.route('/finance/yearly', methods=['POST'])
+@login_required
+def generate_yearly_fees():
+    student_id = request.form.get('student_id')
+    base_value = float(request.form.get('amount'))
+    discount = float(request.form.get('discount', 0))
+    due_day = int(request.form.get('due_day')) # Dia do mês (ex: dia 10)
+    
+    student = Student.query.get_or_404(student_id)
+    current_year = datetime.now().year
+    
+    final_amount = base_value - discount
+    created_count = 0
+
+    for mes, num_mes in MONTHS_MAP.items():
+        # Tenta criar a data. Se o dia for 30/31 e o mês for Fevereiro, ajusta para o dia 28
+        try:
+            due_date = datetime(current_year, num_mes, due_day).date()
+        except ValueError:
+            due_date = datetime(current_year, num_mes, 28).date()
+
+        # Verifica se já existe mensalidade para este aluno neste mês
+        existing = Fee.query.filter_by(student_id=student.id, month=mes).filter(Fee.due_date.like(f'%{current_year}%')).first()
+        
+        if not existing:
+            new_fee = Fee(
+                student_id=student.id, 
+                month=mes, 
+                amount=final_amount, 
+                due_date=due_date, 
+                status='pendente'
+            )
+            db.session.add(new_fee)
+            created_count += 1
+            
+    db.session.commit()
+    flash(f'{created_count} mensalidades geradas para {student.name}!')
     return redirect(url_for('finance'))    
 
 @app.route('/finance/receipt/<int:id>')

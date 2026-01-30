@@ -1,0 +1,63 @@
+/* --- CONFIGURAÇÃO DE CORES DA MARCA --- */
+:root {
+    /* Mude aqui a cor principal (Botões, Links, Navbar) */
+    --bs-primary: #4361ee; 
+    /* Exemplo: Azul Royal moderno */
+    
+    /* Mude aqui a cor secundária */
+    --bs-secondary: #3f37c9;
+    
+    /* Mude a cor de sucesso (Pagamento, Sucesso) */
+    --bs-success: #2ecc71;
+    
+    /* Mude a cor de alerta (Pendente, Erros) */
+    --bs-warning: #f1c40f;
+}
+
+/* --- FONTE GERAL DO SISTEMA --- */
+body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f8f9fa; /* Cor de fundo da página */
+}
+
+/* --- ESTILIZAR OS CARDS (Cartões de Informações) --- */
+.card {
+    border: none;
+    border-radius: 12px; /* Borda mais arredondada */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05); /* Sombra suave */
+    transition: transform 0.2s; /* Efeito ao passar o mouse */
+}
+
+.card:hover {
+    transform: translateY(-5px); /* Cartão "levanta" ao passar o mouse */
+}
+
+/* --- BARRA DE NAVEGAÇÃO (Menu Superior) --- */
+.navbar {
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.navbar-brand {
+    font-weight: 800; /* Logo em negrito */
+    font-size: 1.5rem;
+    letter-spacing: -0.5px;
+}
+
+/* --- BOTÕES --- */
+.btn {
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Fundo do Dashboard */
+body {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+}
+
+/* Fundo do Login */
+#login-screen { /* Lembre-se de colocar um ID no body do login se quiser específico */
+    background: #2c3e50;
+}

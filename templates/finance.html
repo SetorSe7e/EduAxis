@@ -1,11 +1,14 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<<div class="d-flex justify-content-between align-items-center mb-4">
     <h1>Financeiro</h1>
     <div>
-        <button class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#modalBulk">
-            <i class="fas fa-bolt"></i> Gerar em Lote
+        <!-- NOVO BOTÃO: Gerar Anual -->
+        <button class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#modalYearly">
+            <i class="fas fa-calendar-plus"></i> Gerar 12x (Anual)
         </button>
+        
+        <!-- Botão antigo de Individual mantido -->
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddFee">
             <i class="fas fa-file-invoice-dollar"></i> Individual
         </button>
@@ -13,51 +16,56 @@
 </div>
 
 <div class="table-responsive">
-    <!-- Modal Geração em Lote -->
-<div class="modal fade" id="modalBulk" tabindex="-1">
+<!-- Modal Geração Anual (12x) -->
+<div class="modal fade" id="modalYearly" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Gerar Mensalidades em Lote</h5>
+                <h5 class="modal-title">Gerar Mensalidades Anuais (12x)</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="{{ url_for('bulk_fees') }}" method="POST">
+            <form action="{{ url_for('generate_yearly_fees') }}" method="POST">
                 <div class="modal-body">
+                    <!-- Dropdown de Aluno -->
+                    <div class="mb-3">
+                        <label>Selecione o Aluno</label>
+                        <select name="student_id" class="form-select" required>
+                            <option value="">Selecione...</option>
+                            {% for s in students %}
+                            <option value="{{ s.id }}">{{ s.name }} ({{ s.class_name }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label>Mês</label>
-                            <select name="month" class="form-select" required>
-                                <option value="Janeiro">Janeiro</option>
-                                <option value="Fevereiro">Fevereiro</option>
-                                <option value="Março">Março</option>
-                                <option value="Abril">Abril</option>
-                                <option value="Maio">Maio</option>
-                                <option value="Junho">Junho</option>
-                                <option value="Julho">Julho</option>
-                                <option value="Agosto">Agosto</option>
-                                <option value="Setembro">Setembro</option>
-                                <option value="Outubro">Outubro</option>
-                                <option value="Novembro">Novembro</option>
-                                <option value="Dezembro">Dezembro</option>
-                            </select>
+                            <label>Valor Mensal (R$)</label>
+                            <input type="number" step="0.01" name="amount" class="form-control" value="500.00" required>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label>Vencimento</label>
-                            <input type="date" name="due_date" class="form-control" required>
+                            <label>Desconto Global (R$)</label>
+                            <input type="number" step="0.01" name="discount" class="form-control" value="0.00">
                         </div>
                     </div>
+                    
                     <div class="mb-3">
-                        <label>Valor Base (R$)</label>
-                        <input type="number" step="0.01" name="amount" class="form-control" value="500.00" required>
+                        <label>Dia do Vencimento (Todos os meses)</label>
+                        <select name="due_day" class="form-select" required>
+                            <option value="5">Dia 05</option>
+                            <option value="10" selected>Dia 10</option>
+                            <option value="15">Dia 15</option>
+                            <option value="20">Dia 20</option>
+                            <option value="25">Dia 25</option>
+                        </select>
+                        <small class="text-muted">Será aplicado para todos os meses do ano.</small>
                     </div>
-                    <div class="mb-3">
-                        <label>Desconto Global (R$)</label>
-                        <input type="number" step="0.01" name="discount" class="form-control" value="0.00">
-                        <small class="text-muted">Será subtraído do valor base.</small>
+                    
+                    <div class="alert alert-info py-1 small">
+                        <i class="fas fa-info-circle"></i> Isso gerará as 12 mensalidades de Janeiro a Dezembro.
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Gerar para Todos</button>
+                    <button type="submit" class="btn btn-success">Gerar 12x</button>
                 </div>
             </form>
         </div>
