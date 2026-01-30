@@ -1,33 +1,33 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1 class="mb-4">Dashboard Financeiro</h1>
 <div class="row">
-    <div class="col-md-3">
-        <div class="card text-white bg-success mb-3">
-            <div class="card-header">Receita Total</div>
+    <!-- KPI Cards -->
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-primary shadow">
+            <div class="card-header">Receita Total (Ano)</div>
             <div class="card-body">
-                <h3 class="card-title">R$ {{ "{0:.2f}".format(receita) }}</h3>
+                <h3 class="card-title">R$ {{ "{0:.2f}".format(receita_total) }}</h3>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-warning mb-3">
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-warning shadow">
             <div class="card-header">Pendente</div>
             <div class="card-body">
-                <h3 class="card-title">R$ {{ "{0:.2f}".format(pendente_val) }}</h3>
+                <h3 class="card-title">R$ {{ "{0:.2f}".format(pendente_total) }}</h3>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-info mb-3">
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-info shadow">
             <div class="card-header">Alunos Matriculados</div>
             <div class="card-body">
                 <h3 class="card-title">{{ student_count }}</h3>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-secondary mb-3">
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-success shadow">
             <div class="card-header">Mensalidades Pagas</div>
             <div class="card-body">
                 <h3 class="card-title">{{ paid }}</h3>
@@ -35,4 +35,75 @@
         </div>
     </div>
 </div>
+
+<!-- Gráficos -->
+<div class="row">
+    <div class="col-md-8 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0 text-primary"><i class="fas fa-chart-bar me-2"></i> Receita Mensal</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="receitaChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0 text-primary"><i class="fas fa-chart-pie me-2"></i> Alunos por Turma</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="turmaChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Adicionamos o Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // 1. Gráfico de Receita (Barra)
+    const ctx1 = document.getElementById('receitaChart').getContext('2d');
+    new Chart(ctx1, {
+        type: 'bar',
+        data: {
+            labels: {{ meses | tojson | safe }},
+            datasets: [{
+                label: 'Receita (R$)',
+                data: {{ valores_receita | tojson | safe }},
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+
+    // 2. Gráfico de Turmas (Pizza)
+    const ctx2 = document.getElementById('turmaChart').getContext('2d');
+    new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+            labels: {{ nomes_turmas | tojson | safe }},
+            datasets: [{
+                label: 'Alunos',
+                data: {{ alunos_turma | tojson | safe }},
+                backgroundColor: [
+                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'
+                ]
+            }]
+        },
+        options: {
+            responsive: true
+        }
+    });
+</script>
 {% endblock %}

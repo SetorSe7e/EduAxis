@@ -69,16 +69,46 @@ def dashboard():
     total_fees = Fee.query.filter_by(status='pago').count()
     pending_fees = Fee.query.filter_by(status='pendente').count()
     
-    # Cálculo financeiro simples
-    receita = sum([f.amount for f in Fee.query.filter_by(status='pago').all()])
-    pendente = sum([f.amount for f in Fee.query.filter_by(status='pendente').all()])
+    # --- DADOS PARA GRÁFICO DE RECEITA MENSAL ---
+    # Lista de todos os meses
+    meses_ordem = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+    
+    # Calcula receita por mês
+    receitas_por_mes = []
+    for mes in meses_ordem:
+        # Soma todos os pagamentos daquele mês
+        valor = db.session.query(db.func.sum(Fee.amount)).filter(
+            Fee.month == mes, 
+            Fee.status == 'pago'
+        ).scalar()
+        # Se não houver dados, valor é 0
+        receitas_por_mes.append(valor if valor else 0)
+
+    # --- DADOS PARA GRÁFICO DE TURMAS ---
+    # Pega as turmas que existem e conta quantos alunos têm (baseado no campo class_name do aluno)
+    turmas_distintas = db.session.query(Student.class_name).distinct().all()
+    nomes_turmas = [t[0] for t in turmas_distintas]
+    
+    alunos_por_turma = []
+    for nome_turma in nomes_turmas:
+        total = Student.query.filter_by(class_name=nome_turma).count()
+        alunos_por_turma.append(total)
+
+    # KPIs Financeiros Totais
+    receita_total = sum(receitas_por_mes)
+    pendente_total = sum([f.amount for f in Fee.query.filter_by(status='pendente').all()])
 
     return render_template('dashboard.html', 
                            student_count=total_students, 
                            paid=total_fees, 
                            pending=pending_fees,
-                           receita=receita,
-                           pendente_val=pendente)
+                           receita_total=receita_total,
+                           pendente_total=pendente_total,
+                           meses=meses_ordem,
+                           valores_receita=receitas_por_mes,
+                           nomes_turmas=nomes_turmas,
+                           alunos_turma=alunos_por_turma
+                           )
 
 @app.route('/students')
 @login_required
@@ -195,7 +225,7 @@ def generate_receipt(id):
     
     # Cabeçalho
     pdf.set_font('Arial', 'B', 16)
-    pdf.cell(200, 10, remover_acentos('Escola Renascher'), ln=True, align='C')
+    pdf.cell(200, 10, remover_acentos('Escola Renascer'), ln=True, align='C')
     
     pdf.set_font('Arial', 'I', 12)
     pdf.cell(200, 6, remover_acentos('Comprovante de Pagamento'), ln=True, align='C')
